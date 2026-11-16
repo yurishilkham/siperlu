@@ -10,7 +10,7 @@ export class ApiError extends Error {
   }
 }
 
-type Session = { authenticated: boolean; username?: string };
+type Session = { authenticated: boolean; email?: string };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { credentials: "same-origin", ...init });
@@ -36,11 +36,11 @@ export function fetchSession(): Promise<Session> {
   return request<Session>("/api/auth/me");
 }
 
-export function login(username: string, password: string): Promise<Session> {
+export function login(email: string, password: string): Promise<Session> {
   return request<Session>("/api/auth/login", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
   });
 }
 

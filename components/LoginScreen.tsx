@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 
 type LoginScreenProps = {
-  onLogin: (username: string, password: string) => Promise<void>;
+  onLogin: (email: string, password: string) => Promise<void>;
   busy?: boolean;
   error?: string;
 };
@@ -13,13 +13,13 @@ export default function LoginScreen({
   busy = false,
   error = "",
 }: LoginScreenProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    await onLogin(username.trim(), password);
+    await onLogin(email.trim(), password);
   }
 
   return (
@@ -35,13 +35,14 @@ export default function LoginScreen({
           Kelola arsip peraturan dan regulasi pemilu.
         </p>
         <label className="field">
-          Username
+          Email
           <input
-            placeholder="cth: admin"
-            autoComplete="username"
+            type="email"
+            placeholder="cth: admin@bawaslu.go.id"
+            autoComplete="email"
             required
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
           />
         </label>
         <label className="field">

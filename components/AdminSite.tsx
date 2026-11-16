@@ -114,11 +114,11 @@ export default function AdminSite() {
     downloadArchiveDoc(document, () => setDownloads((value) => value + 1));
   }
 
-  async function handleLogin(username: string, password: string) {
+  async function handleLogin(email: string, password: string) {
     setLoginBusy(true);
     setLoginError("");
     try {
-      await login(username, password);
+      await login(email, password);
       setLoggedIn(true);
       window.scrollTo({ top: 0 });
     } catch (error) {

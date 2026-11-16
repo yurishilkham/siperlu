@@ -39,7 +39,7 @@ Situs memakai layanan Cloudflare:
 | --- | --- | --- |
 | D1 | `siperlu-db` | metadata dokumen |
 | R2 | `siperlu-files` | berkas PDF (maks 10 MB) |
-| Workers Secrets | `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | login admin |
+| Workers Secrets | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | login admin |
 
 Terapkan migrasi skema:
 

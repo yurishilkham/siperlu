@@ -35,7 +35,7 @@ interface Env {
   DB: D1;
   FILES: R2;
   ASSETS: Assets;
-  ADMIN_USERNAME: string;
+  ADMIN_EMAIL: string;
   ADMIN_PASSWORD_HASH: string;
   SESSION_SECRET: string;
 }
@@ -211,9 +211,9 @@ async function currentUser(request: Request, env: Env): Promise<string | null> {
   }
 }
 
-async function createSession(username: string, env: Env): Promise<string> {
+async function createSession(email: string, env: Env): Promise<string> {
   const payload = bytesToB64Url(
-    encoder.encode(JSON.stringify({ sub: username, exp: Date.now() + SESSION_TTL * 1000 })),
+    encoder.encode(JSON.stringify({ sub: email, exp: Date.now() + SESSION_TTL * 1000 })),
   );
   const signature = await signSession(env.SESSION_SECRET, payload);
   return `${payload}.${signature}`;
@@ -439,27 +439,30 @@ async function serveFile(request: Request, env: Env, id: string) {
 }
 
 async function handleLogin(request: Request, env: Env) {
-  if (!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD_HASH || !env.SESSION_SECRET) {
+  if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD_HASH || !env.SESSION_SECRET) {
     return fail(500, "Kredensial admin belum dikonfigurasi.");
   }
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-  const username = cleanText(body.username, 100);
+  const email = cleanText(body.email, 200).toLowerCase();
   const password = typeof body.password === "string" ? body.password : "";
 
-  if (!username || !password) return fail(400, "Username dan password wajib diisi.");
+  if (!email || !password) return fail(400, "Email dan password wajib diisi.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return fail(401, "Email atau password salah.");
+  }
 
   const validUser = timingSafeEqual(
-    encoder.encode(username),
-    encoder.encode(env.ADMIN_USERNAME),
+    encoder.encode(email),
+    encoder.encode(env.ADMIN_EMAIL.trim().toLowerCase()),
   );
   const validPassword = await verifyPassword(password, env.ADMIN_PASSWORD_HASH);
 
-  if (!validUser || !validPassword) return fail(401, "Username atau password salah.");
+  if (!validUser || !validPassword) return fail(401, "Email atau password salah.");
 
-  const token = await createSession(env.ADMIN_USERNAME, env);
+  const token = await createSession(env.ADMIN_EMAIL, env);
   return json(
-    { ok: true, username: env.ADMIN_USERNAME },
+    { ok: true, email: env.ADMIN_EMAIL },
     200,
     { "set-cookie": sessionCookie(token, SESSION_TTL, new URL(request.url).protocol === "https:") },
   );
@@ -492,8 +495,8 @@ export default {
       }
 
       if (path === "/api/auth/me") {
-        const username = await currentUser(request, env);
-        return json(username ? { authenticated: true, username } : { authenticated: false });
+        const email = await currentUser(request, env);
+        return json(email ? { authenticated: true, email } : { authenticated: false });
       }
 
       if (path === "/api/documents") {
