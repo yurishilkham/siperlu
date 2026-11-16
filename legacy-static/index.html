@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SIPERLU — pusat arsip digital peraturan dan regulasi Pemilu Bawaslu Kota Pasuruan.">
+<meta name="theme-color" content="#0b2344">
+<title>SIPERLU — Arsip Digital Bawaslu Kota Pasuruan</title>
+<link rel="icon" type="image/png" sizes="128x128" href="Siperlu.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ HEADER USER ============ -->
+<header class="wf-header">
+  <div class="logo-box">
+    <img src="Siperlu.png" alt="Logo SIPERLU" class="app-logo">
+  </div>
+  <nav class="wf-nav" aria-label="Navigasi utama">
+    <a href="#beranda" class="active">Beranda</a>
+    <a href="#arsip">Arsip Regulasi</a>
+  </nav>
+</header>
+
+<!-- ============ 1. BERANDA / HERO ============ -->
+<section id="beranda" class="wf-section">
+  <div class="hero">
+    <div class="hero-left">
+      <h1 class="hero-title">Sistem Informasi<br>Peraturan &amp; Regulasi <span>Pemilu</span></h1>
+      <p class="hero-desc">Pusat arsip digital peraturan dan regulasi Pemilu untuk seluruh tahapan. Temukan UU, Perbawaslu, PKPU, surat edaran, keputusan dalam satu tempat.</p>
+      <div class="hero-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.2 4.2"></path></svg>
+        <input id="heroCari" aria-label="Cari dokumen" placeholder="Cari nomor, judul, atau kata kunci...">
+        <button class="btn-cari" type="button" onclick="cariDariHero()">Cari Dokumen</button>
+      </div>
+      <div class="popular">
+        <span class="popular-label">Populer</span>
+        <button class="chip" type="button" onclick="chipCari('UU Pemilu')">UU Pemilu</button>
+        <button class="chip" type="button" onclick="chipCari('UU Pemilihan')">UU Pemilihan</button>
+        <button class="chip" type="button" onclick="chipCari('Peraturan Bawaslu')">Peraturan Bawaslu</button>
+        <button class="chip" type="button" onclick="chipCari('Keputusan KPU')">Keputusan KPU</button>
+      </div>
+      <div class="hero-stats">
+        <div><b id="stTotal">16</b><span>Dokumen arsip</span></div>
+        <div><b id="stBerlaku">10</b><span>Status berlaku</span></div>
+        <div><b id="stUnduh">0</b><span>Kali diunduh</span></div>
+      </div>
+    </div>
+    <div class="hero-right hero-foto">
+      <img src="beranda.JPG" alt="Jajaran Bawaslu Kota Pasuruan" class="hero-photo">
+      <div class="note"><span class="live-dot"></span>Jajaran Bawaslu Kota Pasuruan</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. KATEGORI ARSIP ============ -->
+<section id="kategori" class="wf-section kat-section">
+  <div class="kat-head">
+    <div>
+      <h2 class="kat-title">Kategori Arsip</h2>
+      <p class="muted">Pilih kategori untuk memfilter katalog dokumen secara otomatis.</p>
+    </div>
+    <span class="kat-total" id="katTotal">9 kategori • 16 dokumen</span>
+  </div>
+  <div class="kat-grid" id="kategoriGrid">
+    <button type="button" class="kat-card active" data-cat="uud-pemilu"><span class="kat-icon" style="--akbg:#fee2e2">UU</span><span class="kat-text"><b>UU Pemilu</b><small>UU No. 7/2017 + Perubahan</small></span><span class="kat-count">2</span></button>
+    <button type="button" class="kat-card" data-cat="uud-pemilihan"><span class="kat-icon" style="--akbg:#ffedd5">UU</span><span class="kat-text"><b>UU Pemilihan</b><small>UU No. 10/2016 + Revisi</small></span><span class="kat-count">2</span></button>
+    <button type="button" class="kat-card" data-cat="perbawaslu"><span class="kat-icon" style="--akbg:#dbeafe">PB</span><span class="kat-text"><b>Perbawaslu</b><small>Peraturan Bawaslu</small></span><span class="kat-count">2</span></button>
+    <button type="button" class="kat-card" data-cat="se-bawaslu"><span class="kat-icon" style="--akbg:#ccfbf1">SE</span><span class="kat-text"><b>SE Bawaslu</b><small>Surat Edaran Bawaslu</small></span><span class="kat-count">2</span></button>
+    <button type="button" class="kat-card" data-cat="pkpu"><span class="kat-icon" style="--akbg:#ede9fe">PK</span><span class="kat-text"><b>PKPU</b><small>Peraturan KPU</small></span><span class="kat-count">1</span></button>
+    <button type="button" class="kat-card" data-cat="se-kpu"><span class="kat-icon" style="--akbg:#e0f2fe">SE</span><span class="kat-text"><b>SE KPU</b><small>Surat Edaran KPU</small></span><span class="kat-count">1</span></button>
+    <button type="button" class="kat-card" data-cat="sk-kpu"><span class="kat-icon" style="--akbg:#fce7f3">SK</span><span class="kat-text"><b>SK KPU</b><small>Surat Keputusan KPU</small></span><span class="kat-count">2</span></button>
+    <button type="button" class="kat-card" data-cat="sk-ba"><span class="kat-icon" style="--akbg:#fef3c7">BA</span><span class="kat-text"><b>SK &amp; BA</b><small>SK Internal + Berita Acara</small></span><span class="kat-count">2</span></button>
+  </div>
+</section>
+
+<!-- ============ 3. KATALOG / JELAJAHI ARSIP (tabel) ============ -->
+<section id="arsip" class="wf-section katalog">
+  <div class="katalog-top">
+    <div>
+      <h2 class="katalog-title">Jelajahi Peraturan &amp; Arsip</h2>
+      <p class="muted" id="katalogSub">Menampilkan 16 dari 16 dokumen</p>
+    </div>
+    <div class="katalog-tools">
+      <select id="urutArsip" aria-label="Urutkan dokumen">
+        <option value="baru">Terbaru ↓</option>
+        <option value="lama">Terlama ↑</option>
+        <option value="az">Judul A–Z</option>
+      </select>
+      <button class="btn-secondary btn-sm" type="button" id="btnReset">Atur ulang</button>
+    </div>
+  </div>
+  <div class="pills" id="pillsKat" role="tablist" aria-label="Filter kategori">
+    <button class="pill active" type="button" data-cat="semua">Semua</button>
+    <button class="pill" type="button" data-cat="uud-pemilu">UU Pemilu</button>
+    <button class="pill" type="button" data-cat="uud-pemilihan">UU Pemilihan</button>
+    <button class="pill" type="button" data-cat="perbawaslu">Peraturan Bawaslu</button>
+    <button class="pill" type="button" data-cat="se-bawaslu">Surat Edaran Bawaslu</button>
+    <button class="pill" type="button" data-cat="pkpu">PKPU</button>
+    <button class="pill" type="button" data-cat="se-kpu">Surat Edaran KPU</button>
+    <button class="pill" type="button" data-cat="sk-kpu">Surat Keputusan KPU</button>
+    <button class="pill" type="button" data-cat="sk-ba">SK &amp; BA</button>
+  </div>
+  <div class="katalog-body">
+    <aside class="filter-panel" aria-label="Filter arsip">
+      <div class="filter-head"><b>Filter</b><button class="link-btn" type="button" id="btnClear">Bersihkan</button></div>
+      <div class="filter-group">
+        <span class="filter-cap">Kata Kunci</span>
+        <input id="cariArsip" aria-label="Cari arsip" placeholder="Judul / nomor / tag...">
+      </div>
+      <div class="filter-group">
+        <span class="filter-cap">Kategori</span>
+        <div id="cekKat"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-cap">Tahun</span>
+        <select id="tahunArsip" aria-label="Filter tahun"><option value="">Semua tahun</option></select>
+      </div>
+    </aside>
+    <div class="katalog-main">
+      <div id="detailBox" class="detail-box hidden" aria-live="polite">
+        <div class="detail-head">
+          <span class="detail-icon" aria-hidden="true">i</span>
+          <div><small>Metadata dokumen</small><b>Pilih dokumen untuk melihat detail</b><span>Klik tombol <strong>Detail</strong> pada salah satu baris untuk melihat ringkasan metadata di sini.</span></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="wf-table tabel-arsip" id="tabelArsip">
+          <thead><tr><th>No</th><th>Nomor / Judul</th><th>Tahun</th><th>Tentang</th><th>File</th><th>Aksi</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-mark"><b>SI</b><span>PERLU</span></div>
+      <p>Pusat arsip digital peraturan dan regulasi Pemilu Bawaslu Kota Pasuruan. Cepat dicari, mudah diunduh, dan terpercaya.</p>
+    </div>
+    <div class="footer-col">
+      <b>Navigasi</b>
+      <a href="#beranda">Beranda</a>
+      <a href="#arsip">Arsip Regulasi</a>
+    </div>
+    <div class="footer-col">
+      <b>Informasi</b>
+      <a href="mailto:set.pasuruankota@bawaslu.go.id">Kontak</a>
+      <a href="http://pasuruankota.bawaslu.go.id" target="_blank" rel="noopener">Laman Bawaslu</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 SIPERLU — Bawaslu Kota Pasuruan. Seluruh hak cipta dilindungi.</span>
+    <span>Arsip digital untuk pengawasan Pemilu yang transparan.</span>
+  </div>
+</footer>
+
+<!-- MODAL PRATINJAU BERKAS -->
+<div id="modalPratinjau" class="modal-back hidden" role="dialog" aria-modal="true" aria-labelledby="judulPratinjau">
+  <div class="modal besar">
+    <button class="modal-close" type="button" aria-label="Tutup" onclick="document.getElementById('modalPratinjau').classList.add('hidden')">×</button>
+    <div class="modal-head">
+      <h3 id="judulPratinjau">Pratinjau Berkas</h3>
+      <p>Ringkasan metadata dokumen dalam format lembar resmi.</p>
+    </div>
+    <div class="doc-paper modal-doc" id="prevDoc"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary btn-sm" type="button" onclick="document.getElementById('modalPratinjau').classList.add('hidden')">Tutup</button>
+      <button class="btn-primary btn-sm" type="button" onclick="if(prevId)unduhBaris(prevId)">Unduh PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  "uud-pemilu": { judul: "UU Pemilu", rows: [
+    ["1","UU No. 7 Tahun 2017","2017","Pemilihan Umum","PDF"],
+    ["2","UU No. 7/2017 + PKPU Turunan","2023","Perubahan & Penyesuaian","PDF"]]},
+  "uud-pemilihan": { judul: "UU Pemilihan", rows: [
+    ["1","UU No. 10 Tahun 2016","2016","Pilkada Serentak","PDF"],
+    ["2","UU No. 1 Tahun 2015 jo.","2015","Penetapan Perppu","PDF"]]},
+  "perbawaslu": { judul: "Perbawaslu", rows: [
+    ["1","Perbawaslu No. 5 Tahun 2024","2024","Pengawasan Tahapan","PDF"],
+    ["2","Perbawaslu No. 3 Tahun 2023","2023","Penanganan Pelanggaran","PDF"]]},
+  "se-bawaslu": { judul: "Surat Edaran Bawaslu", rows: [
+    ["1","SE Bawaslu No. 3 Tahun 2026","2026","Petunjuk Teknis Pengawasan","PDF"],
+    ["2","SE Bawaslu No. 1 Tahun 2025","2025","Netralitas ASN","PDF"]]},
+  "pkpu": { judul: "PKPU", rows: [
+    ["1","PKPU No. 8 Tahun 2024","2024","Pencalonan","PDF"]]},
+  "se-kpu": { judul: "Surat Edaran KPU", rows: [
+    ["1","SE KPU No. 12 Tahun 2024","2024","Juknis Pemutakhiran Data","PDF"]]},
+  "sk-kpu": { judul: "Surat Keputusan KPU", rows: [
+    ["1","SK KPU No. 456/2024","2024","Tahapan & Jadwal","PDF"],
+    ["2","SK KPU No. 120/2023","2023","Dapil & Alokasi Kursi","PDF"]]},
+  "sk-ba": { judul: "SK & BA", rows: [
+    ["1","SK Ketua No. 05/2026","2026","Tim Pengawasan Internal","PDF"],
+    ["2","BA Pleno No. 12/2026","2026","Berita Acara Rapat","PDF"]]},
+};
+const KAT = [
+  ["uud-pemilu","UU Pemilu"], ["uud-pemilihan","UU Pemilihan"],
+  ["perbawaslu","Peraturan Bawaslu"], ["se-bawaslu","Surat Edaran Bawaslu"],
+  ["pkpu","PKPU"], ["se-kpu","Surat Edaran KPU"], ["sk-kpu","Surat Keputusan KPU"],
+];
+let fCat = "semua", fQ = "", fTahun = "", fUrut = "baru";
+// id stabil tiap baris agar Detail/Lihat tepat sasaran
+let _seq = 0;
+for(const k of Object.keys(data)) data[k].rows.forEach(r => r._id = "d" + (++_seq));
+function cariBaris(id){
+  for(const k of Object.keys(data))
+    for(const r of data[k].rows)
+      if(r._id === id){
+        const label = (KAT.find(([kk]) => kk === k) || ["", k])[1];
+        return { kat: label, judul: r[1], tahun: r[2], tentang: r[3], file: r[4] };
+      }
+  return null;
+}
+function semuaBaris(){
+  const out = [];
+  for(const [key, label] of KAT)
+    data[key].rows.forEach(r => out.push({ id: r._id, key, kat: label, judul: r[1], tahun: r[2], tentang: r[3], file: r[4] }));
+  return out;
+}
+function renderTabel(){
+  const total = semuaBaris().length;
+  let rows = semuaBaris();
+  if(fCat !== "semua") rows = rows.filter(r => r.key === fCat);
+  if(fQ) rows = rows.filter(r => (r.judul + " " + r.tentang + " " + r.tahun + " " + r.kat).toLowerCase().includes(fQ));
+  if(fTahun) rows = rows.filter(r => r.tahun === fTahun);
+  if(fUrut === "baru") rows.sort((a,b) => b.tahun.localeCompare(a.tahun));
+  else if(fUrut === "lama") rows.sort((a,b) => a.tahun.localeCompare(b.tahun));
+  else if(fUrut === "az") rows.sort((a,b) => a.judul.localeCompare(b.judul));
+  const tb = document.querySelector("#tabelArsip tbody");
+  tb.innerHTML = rows.map((r,i) => `<tr>
+    <td class="cell-no">${i+1}</td>
+    <td><div class="doc-title-cell">${fCat === "semua" ? `<span class="mini-kat">${r.kat}</span>` : ""}<span>${r.judul}</span></div></td>
+    <td><span class="year-chip">${r.tahun}</span></td>
+    <td>${r.tentang}</td>
+    <td><span class="file-badge" title="${r.file}">${r.file}</span></td>
+    <td><div class="row-actions"><button type="button" class="btn-small" onclick="detailDok('${r.id}')">Detail</button><button type="button" class="btn-small" onclick="lihatDok('${r.id}')">Lihat</button><button type="button" class="btn-small btn-icon" title="Unduh dokumen" onclick="unduhBaris('${r.id}')">Unduh</button></div></td>
+  </tr>`).join("")
+    || `<tr><td colspan="6"><div class="empty-state"><b>Tidak ada dokumen ditemukan</b><span>Coba ubah kata kunci atau bersihkan filter.</span></div></td></tr>`;
+  document.getElementById("katalogSub").textContent = `Menampilkan ${rows.length} dari ${total} dokumen`;
+  document.querySelectorAll("#pillsKat .pill").forEach(p => p.classList.toggle("active", p.dataset.cat === fCat));
+  document.querySelectorAll("#cekKat input").forEach(c => c.checked = (c.value === fCat));
+  document.querySelectorAll(".kat-card").forEach(x => x.classList.toggle("active", x.dataset.cat === fCat));
+  refreshKatCount();
+}
+function refreshKatCount(){
+  document.querySelectorAll(".kat-card").forEach(card => {
+    const n = (data[card.dataset.cat]?.rows || []).length;
+    const el = card.querySelector(".kat-count");
+    if(el) el.textContent = n;
+  });
+}
+function setKategori(k){ fCat = k; renderTabel(); }
+function tutupDetail(){
+  document.getElementById("detailBox").classList.add("hidden");
+}
+function detailDok(id){
+  const r = cariBaris(id); if(!r) return;
+  const box = document.getElementById("detailBox");
+  box.classList.remove("hidden");
+  box.innerHTML = `<div class="detail-head">
+      <span class="detail-icon" aria-hidden="true">i</span>
+      <div><small>Detail dokumen</small><b>${r.judul}</b></div>
+      <button type="button" class="detail-close" aria-label="Tutup detail" onclick="tutupDetail()">&times;</button>
+    </div>
+    <div class="detail-meta">
+      <span><small>Kategori</small><b>${r.kat}</b></span>
+      <span><small>Tahun</small><b>${r.tahun}</b></span>
+      <span><small>Tentang</small><b>${r.tentang}</b></span>
+      <span><small>Berkas</small><b>${r.file}</b></span>
+    </div>`;
+  box.scrollIntoView({behavior:"smooth", block:"start"});
+}
+// pratinjau isi berkas dalam format lembar dokumen resmi
+let prevId = null;
+function lembarDok(r){
+  const berlaku = +r.tahun >= 2024;
+  return `
+    <div class="kop resmi">
+      <img src="logo-bawaslu.png" class="kop-logo" onerror="this.style.display='none'">
+      <div class="kop-brand"><div class="kop-bawaslu">BAWASLU</div><div class="kop-sub">BADAN PENGAWAS PEMILIHAN UMUM</div><div class="kop-kota">KOTA PASURUAN</div></div>
+      <div class="kop-addr">Jl. Untung Suropati No. 23 Kota Pasuruan<br>Telepon&ensp;: (0343) 6008063<br>Surel&emsp;&ensp;&nbsp;: set.pasuruankota@bawaslu.go.id<br>Laman&ensp;&nbsp;: http://pasuruankota.bawaslu.go.id</div>
+    </div>
+    <div class="doc-judul">${r.judul}<br><span class="muted small">${r.kat} • Tahun ${r.tahun}</span></div>
+    <div class="doc-body">
+      <table class="doc-tbl">
+        <tr><td>Kategori</td><td>: ${r.kat}</td></tr>
+        <tr><td>Nomor / Judul</td><td>: ${r.judul}</td></tr>
+        <tr><td>Tahun</td><td>: ${r.tahun}</td></tr>
+        <tr><td>Tentang</td><td>: ${r.tentang}</td></tr>
+        <tr><td>Status</td><td>: ${berlaku ? "Berlaku" : "Arsip"}</td></tr>
+        <tr><td>Berkas</td><td>: ${r.file}</td></tr>
+      </table>
+      <p class="muted small">Pratinjau arsip digital SIPERLU — Bawaslu Kota Pasuruan. Unduh berkas untuk isi lengkap.</p>
+    </div>`;
+}
+function lihatDok(id){
+  const r = cariBaris(id); if(!r) return;
+  prevId = id;
+  document.getElementById("prevDoc").innerHTML = lembarDok(r);
+  document.getElementById("modalPratinjau").classList.remove("hidden");
+}
+// ===== Simpan/unduh PDF : buka dialog cetak browser, pilih tujuan "Simpan sebagai PDF" =====
+const GAYA_PDF = `
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#fff; color:#111; font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif; font-size:12.5px; line-height:1.6; }
+  .kop{ display:flex; gap:12px; align-items:center; border-bottom:3px double #111; padding-bottom:10px; margin-bottom:10px; }
+  .kop.resmi{ border-bottom:3px double #111; padding-bottom:12px; align-items:flex-start; margin-bottom:14px; }
+  .kop-logo{ width:64px; height:64px; object-fit:contain; }
+  .kop-brand{ line-height:1.25; }
+  .kop-bawaslu{ font-weight:900; font-size:26px; letter-spacing:3px; color:#111; }
+  .kop-sub{ font-size:10px; letter-spacing:1px; color:#111; }
+  .kop-kota{ font-size:14px; letter-spacing:5px; color:#111; }
+  .kop-addr{ font-size:11px; line-height:1.4; margin-left:auto; text-align:left; }
+  .doc-judul{ text-align:center; font-weight:800; margin:8px 0 12px; font-size:14px; text-transform:uppercase; letter-spacing:.4px; }
+  .doc-body > b{ display:block; margin:14px 0 4px; padding-bottom:2px; border-bottom:1px solid #111; font-size:11px; text-transform:uppercase; }
+  .doc-tbl{ border-collapse:collapse; margin:4px 0 10px; width:100%; }
+  .doc-tbl td{ padding:1px 6px 1px 0; vertical-align:top; }
+  .doc-tbl td:first-child{ width:130px; }
+  .dots{ min-height:44px; margin:2px 0 10px; word-break:break-word; }
+  .doc-foto-list{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 12px; }
+  .doc-foto-list img{ height:120px; object-fit:cover; border:1px solid #999; border-radius:4px; }
+  .doc-ttd{ text-align:right; margin-top:14px; }
+  .muted{ color:#777; font-size:13px; }
+  .small{ font-size:11px; }
+  @page{ size:210mm 330mm; margin:18mm 16mm; }
+`;
+function amanHTML(s){ return String(s || "dokumen").replace(/[<>&]/g, c => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;" }[c])); }
+function unduhPDF(html, judul){
+  const win = window.open("", "_blank");
+  if(!win){ alert("Pop-up diblokir. Izinkan pop-up agar berkas PDF dapat disimpan."); return; }
+  win.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><base href="${location.href}"><title>${amanHTML(judul)}</title><style>${GAYA_PDF}</style></head><body><div class="doc-paper">${html}</div></body></html>`);
+  win.document.close();
+  win.focus();
+  const cetak = () => { win.onafterprint = () => win.close(); win.print(); };
+  // tunggu gambar kop selesai dimuat dahulu agar tidak tercetak kosong
+  const imgs = [...win.document.images];
+  let sisa = imgs.filter(im => !im.complete).length;
+  if(!sisa){ setTimeout(cetak, 300); return; }
+  imgs.filter(im => !im.complete).forEach(im => {
+    const lanjut = () => { if(--sisa === 0) setTimeout(cetak, 300); };
+    im.addEventListener("load", lanjut);
+    im.addEventListener("error", lanjut);
+  });
+}
+// unduh baris arsip : simpan lembar pratinjau sebagai PDF
+function unduhBaris(id){
+  const r = cariBaris(id); if(!r) return;
+  unduhPDF(lembarDok(r), r.judul);
+  unduhDok();
+}
+// pills + sidebar + kartu kategori sinkron via setKategori
+document.querySelectorAll("#pillsKat .pill").forEach(p => p.onclick = () => setKategori(p.dataset.cat));
+document.querySelectorAll(".kat-card").forEach(c => c.onclick = () => {
+  setKategori(c.dataset.cat);
+  document.getElementById("arsip").scrollIntoView({behavior:"smooth"});
+});
+document.getElementById("cekKat").innerHTML = KAT.map(([k,l]) => `<label class="cek"><input type="checkbox" value="${k}"><span>${l}</span><em>${data[k].rows.length}</em></label>`).join("");
+document.querySelectorAll("#cekKat input").forEach(c => c.onchange = () => setKategori(c.checked ? c.value : "semua"));
+document.getElementById("cariArsip").oninput = e => { fQ = e.target.value.toLowerCase(); renderTabel(); };
+document.getElementById("tahunArsip").innerHTML = `<option value="">Semua</option>` + [...new Set(semuaBaris().map(r => r.tahun))].sort().reverse().map(t => `<option>${t}</option>`).join("");
+document.getElementById("tahunArsip").onchange = e => { fTahun = e.target.value; renderTabel(); };
+document.getElementById("urutArsip").onchange = e => { fUrut = e.target.value; renderTabel(); };
+function resetFilter(){
+  fCat = "semua"; fQ = ""; fTahun = ""; fUrut = "baru";
+  document.getElementById("cariArsip").value = "";
+  document.getElementById("heroCari").value = "";
+  document.getElementById("tahunArsip").value = "";
+  document.getElementById("urutArsip").value = "baru";
+  renderTabel();
+}
+document.getElementById("btnReset").onclick = resetFilter;
+document.getElementById("btnClear").onclick = resetFilter;
+renderTabel();
+
+// ===== Statistik hero dihitung dari berkas katalog =====
+let totalUnduh = 0;
+function fmtCacah(n){ return n >= 1000 ? (n/1000).toLocaleString("id-ID",{maximumFractionDigits:1}) + " rb" : n.toLocaleString("id-ID"); }
+function refreshStats(){
+  const rows = semuaBaris();
+  document.getElementById("stTotal").textContent = rows.length;
+  document.getElementById("stBerlaku").textContent = rows.filter(r => +r.tahun >= 2024).length;
+  document.getElementById("stUnduh").textContent = fmtCacah(totalUnduh);
+  document.getElementById("katTotal").textContent = `${KAT.length} kategori • ${rows.length} dokumen`;
+}
+function unduhDok(){ totalUnduh++; refreshStats(); }
+refreshStats();
+
+// hero search ala gambar 1 -> teruskan ke tabel arsip
+function cariDariHero(){
+  const v = document.getElementById("heroCari").value;
+  document.getElementById("cariArsip").value = v;
+  fQ = v.trim().toLowerCase();
+  fCat = "semua";
+  fTahun = "";
+  const th = document.getElementById("tahunArsip"); if(th) th.value = "";
+  renderTabel();
+  document.getElementById("arsip").scrollIntoView({behavior:"smooth"});
+}
+const CHIP_KATEGORI = {
+  "UU Pemilu":"uud-pemilu",
+  "UU Pemilihan":"uud-pemilihan",
+  "Peraturan Bawaslu":"perbawaslu",
+  "PKPU":"pkpu",
+  "Keputusan KPU":"sk-kpu"
+};
+function chipCari(k){
+  document.getElementById("heroCari").value = k;
+  const key = CHIP_KATEGORI[k];
+  if(!key){ cariDariHero(); return; }
+  fCat = key; fQ = ""; fTahun = "";
+  document.getElementById("cariArsip").value = "";
+  const th = document.getElementById("tahunArsip"); if(th) th.value = "";
+  renderTabel();
+  document.getElementById("arsip").scrollIntoView({behavior:"smooth"});
+}
+document.getElementById("heroCari")?.addEventListener("keydown", e => { if(e.key === "Enter") cariDariHero(); });
+
+// ===== Navigasi : menu aktif berubah warna saat diklik & mengikuti posisi gulir =====
+const navLinks = [...document.querySelectorAll(".wf-nav a")];
+let navKunciSampai = 0, navTunda = 0; // sorotan dikunci sesaat setelah klik agar tidak dilompati animasi gulir
+function setNavAktif(a){ navLinks.forEach(x => x.classList.toggle("active", x === a)); }
+navLinks.forEach(a => a.addEventListener("click", () => {
+  setNavAktif(a);
+  navKunciSampai = Date.now() + 1000;
+}));
+const navSeksi = navLinks.map(a => {
+  const el = document.querySelector(a.getAttribute("href"));
+  return el ? { link:a, el } : null;
+}).filter(Boolean);
+function navIkutGulir(){
+  if(document.getElementById("dashAdmin")?.style.display === "none") return; // admin belum login
+  const headerH = document.querySelector(".wf-header")?.offsetHeight || 72;
+  const pos = window.scrollY + headerH + 20;
+  let aktif = navSeksi[0];
+  for(const s of navSeksi){ if(s.el.offsetTop <= pos) aktif = s; }
+  // di dasar halaman : aktifkan menu terakhir (bagian terakhir tak selalu bisa menempel di ambang 140px)
+  if(window.innerHeight + Math.ceil(window.scrollY) >= document.documentElement.scrollHeight - 2) aktif = navSeksi[navSeksi.length - 1];
+  if(aktif) setNavAktif(aktif.link);
+}
+window.addEventListener("scroll", () => {
+  if(Date.now() < navKunciSampai){ // tunda dulu, biarkan animasi gulir selesai
+    clearTimeout(navTunda);
+    navTunda = setTimeout(navIkutGulir, navKunciSampai - Date.now() + 60);
+    return;
+  }
+  navIkutGulir();
+}, { passive:true });
+
+</script>
+</body>
+</html>

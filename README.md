@@ -1,0 +1,56 @@
+# SIPERLU
+
+Arsip digital peraturan dan regulasi Pemilu Bawaslu Kota Pasuruan, dibangun ulang dengan Next.js App Router.
+
+## Menjalankan
+
+```bash
+npm run dev
+```
+
+Buka:
+
+- Publik: <http://localhost:3000>
+- Admin: <http://localhost:3000/admin>
+
+Build produksi:
+
+```bash
+npm run build
+npm run start
+```
+
+## Mode demo
+
+- Login admin menerima kredensial apa pun.
+- CRUD arsip disimpan di state browser.
+- Tidak ada API, database, atau autentikasi nyata.
+- Data kembali ke kondisi awal saat halaman dimuat ulang.
+- File PDF yang diunggah admin hanya bertahan selama sesi.
+
+## Struktur
+
+- `app/`: layout, halaman publik, halaman admin, dan `globals.css`.
+- `components/`: shell dashboard (sidebar, topbar, hero, kartu statistik, tabel terbaru, pencarian cepat, donat), kategori, katalog, modal, dan layar login.
+- `lib/`: tipe, data demo, format angka, serta generator PDF.
+- `public/`: logo, favicon, dan foto yang dipakai halaman Next.js.
+- `legacy-static/`: salinan halaman statis lama untuk referensi, tidak disajikan oleh Next.js.
+
+## Lembar & PDF arsip
+
+Tombol `Detail`/`Selengkapnya` menampilkan pratinjau lembar resmi dokumen (kop Bawaslu) di dalam modal. Tombol `Unduh` membuka dialog cetak sebagai PDF dengan ukuran kertas **F4/Folio (210×330mm)** — izinkan pop-up agar kop termuat sebelum dialog terbuka.
+
+## Tampilan (app shell dashboard)
+
+Halaman publik dan admin kini memakai **satu shell dashboard** yang sama (`components/Shell.tsx`): sidebar navy (`components/SideNav.tsx`) dengan logo SIPERLU, nav berikon dengan scroll-spy, serta tombol `Keluar` (hanya pada admin); topbar putih (`components/TopBar.tsx`) dengan sapaan, lonceng notifikasi, dan avatar (admin). Halaman publik tidak menyediakan tautan login admin — dashboard hanya diakses lewat `/admin`.
+
+Isi papan (`components/HeroBanner`, `StatCards`, `RecentTable`, `QuickSearchCard`, `DonutCard`, `CategorySection`, `ArchiveCatalog`, `AppFooter`):
+
+- Hero banner navy bergradien: judul dengan penekanan emas, kolom pencarian, tombol `Cari`, dan foto jajaran.
+- Empat kartu statistik: Total Arsip, Arsip Tersedia, Kali Diunduh, dan Arsip Terbaru.
+- Tabel `Arsip Terbaru` (5 dokumen terbaru) dengan tombol mata untuk pratinjau lembar resmi; modalnya juga menyediakan `Unduh PDF`.
+- Kartu `Pencarian Cepat` (tile Peraturan, Bawaslu, KPU, SK & BA) dan donat `Statistik Arsip` per kategori.
+- Kategori arsip dan katalog terpadu; pil kategori di tabel berwarna per kategori (`data-kat`).
+- Footer ringkas.
+
+Perbedaan publik vs admin hanyalah konteks: hero publik "Cari arsip...", hero admin "Kelola arsip...", aksi CRUD (`Tambah Dokumen`, `Edit`, `Hapus`) saat masuk dashboard, dan mode demo tetap berlaku. Pada layar ≤1080px sidebar menjadi drawer yang dibuka tombol hamburger. Gaya shell memakai awalan `hb-`/`sb-`/`tb-`/`stat-`/`rc-`/`qs-`/`dn-`/`af-` di `app/globals.css`. Layar login admin tetap kartu terang.

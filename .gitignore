@@ -1,0 +1,20 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+
+# Local AI tooling (agent skills, binaries)
+.agent
+.gemini
+.opencode
+
+# Env / secrets
+.env
+.env*.local
+
+# Logs & OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
