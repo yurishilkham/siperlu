@@ -1743,3 +1743,8 @@ html{scroll-behavior:smooth}
  height:38px;
  margin-bottom:4px}.tb-greet b{font-size:15px}.board-grid,.qs-grid{grid-template-columns:1fr}.dn-body{justify-content:center}}
 
+
+/* API status & form errors */
+.load-note{margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;line-height:1.5;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.form-error{margin:10px 0 0;color:#b91c1c;font-size:12.5px;line-height:1.5}
+.btn-primary:disabled,.btn-secondary:disabled{opacity:.65;cursor:not-allowed}

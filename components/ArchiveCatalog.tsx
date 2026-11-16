@@ -24,8 +24,9 @@ type ArchiveCatalogProps = {
   admin?: boolean;
   onDownload: (doc: ArchiveDoc) => void;
   onReset?: () => void;
-  onSaveDoc?: (draft: ArchiveDocDraft) => void;
+  onSaveDoc?: (draft: ArchiveDocDraft, file: File | null) => Promise<void>;
   onDeleteDoc?: (id: string) => void;
+  loading?: boolean;
 };
 
 export default function ArchiveCatalog({
@@ -37,6 +38,7 @@ export default function ArchiveCatalog({
   onReset,
   onSaveDoc,
   onDeleteDoc,
+  loading = false,
 }: ArchiveCatalogProps) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
@@ -391,8 +393,16 @@ export default function ArchiveCatalog({
                   <tr>
                     <td colSpan={6}>
                       <div className="empty-state">
-                        <b>Tidak ada dokumen ditemukan</b>
-                        <span>Coba ubah kata kunci atau bersihkan filter.</span>
+                        <b>
+                          {loading
+                            ? "Memuat arsip…"
+                            : "Tidak ada dokumen ditemukan"}
+                        </b>
+                        <span>
+                          {loading
+                            ? "Menghubungkan ke database SIPERLU."
+                            : "Coba ubah kata kunci atau bersihkan filter."}
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -450,7 +460,9 @@ export default function ArchiveCatalog({
           setFormOpen(false);
           setEditingId(null);
         }}
-        onSave={(draft) => onSaveDoc?.(draft)}
+        onSave={(draft, file) =>
+          onSaveDoc ? onSaveDoc(draft, file) : Promise.resolve()
+        }
       />
 
       <Modal

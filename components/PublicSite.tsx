@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Shell from "./Shell";
 import AppFooter from "./AppFooter";
 import HeroBanner from "./HeroBanner";
@@ -9,11 +9,8 @@ import QuickSearchCard from "./QuickSearchCard";
 import DonutCard from "./DonutCard";
 import CategorySection from "./CategorySection";
 import ArchiveCatalog from "./ArchiveCatalog";
-import {
-  DEFAULT_FILTER,
-  INITIAL_DOCUMENTS,
-  documentMatchesQuery,
-} from "@/lib/data";
+import { DEFAULT_FILTER, documentMatchesQuery } from "@/lib/data";
+import { fetchDocuments } from "@/lib/api";
 import { downloadArchiveDoc } from "@/lib/pdf";
 import type {
   ArchiveDoc,
@@ -22,10 +19,35 @@ import type {
 } from "@/lib/types";
 
 export default function PublicSite() {
-  const [documents] = useState<ArchiveDoc[]>(INITIAL_DOCUMENTS);
+  const [documents, setDocuments] = useState<ArchiveDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState<ArchiveFilter>(DEFAULT_FILTER);
   const [heroQuery, setHeroQuery] = useState("");
   const [downloads, setDownloads] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchDocuments()
+      .then((items) => {
+        if (active) setDocuments(items);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(
+            error instanceof Error ? error.message : "Gagal memuat arsip.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function runSearch(query: string): number {
     const keyword = query.trim();
@@ -76,6 +98,7 @@ export default function PublicSite() {
           onQueryChange={setHeroQuery}
           onSearch={() => runSearch(heroQuery)}
         />
+        {loadError ? <p className="load-note">{loadError}</p> : null}
         <div className="board-grid">
           <RecentTable documents={documents} onDownload={handleDownload} />
           <div className="board-side">
@@ -94,6 +117,7 @@ export default function PublicSite() {
           onFilterChange={setFilter}
           onDownload={handleDownload}
           onReset={resetFilter}
+          loading={loading}
         />
         <AppFooter />
       </div>

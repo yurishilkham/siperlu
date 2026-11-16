@@ -3,16 +3,23 @@
 import { useState, type FormEvent } from "react";
 
 type LoginScreenProps = {
-  onLogin: () => void;
+  onLogin: (username: string, password: string) => Promise<void>;
+  busy?: boolean;
+  error?: string;
 };
 
-export default function LoginScreen({ onLogin }: LoginScreenProps) {
+export default function LoginScreen({
+  onLogin,
+  busy = false,
+  error = "",
+}: LoginScreenProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onLogin();
+    if (busy) return;
+    await onLogin(username.trim(), password);
   }
 
   return (
@@ -32,6 +39,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           <input
             placeholder="cth: admin"
             autoComplete="username"
+            required
             value={username}
             onChange={(event) => setUsername(event.target.value)}
           />
@@ -42,15 +50,16 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             type="password"
             placeholder="••••••"
             autoComplete="current-password"
+            required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
         </label>
-        <button className="btn-primary btn-block" type="submit">
-          Masuk
+        {error ? <p className="form-error">{error}</p> : null}
+        <button className="btn-primary btn-block" type="submit" disabled={busy}>
+          {busy ? "Memeriksa…" : "Masuk"}
         </button>
         <p className="login-note">
-          Mode demo — gunakan kredensial apa pun untuk melihat dashboard.
           Halaman ini tidak ditautkan dari dashboard publik.
         </p>
       </form>

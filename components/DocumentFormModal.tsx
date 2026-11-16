@@ -7,7 +7,6 @@ import { fmtSize } from "@/lib/format";
 import type {
   ArchiveDoc,
   ArchiveDocDraft,
-  ArchiveFile,
   CategoryKey,
 } from "@/lib/types";
 
@@ -16,7 +15,7 @@ type DocumentFormModalProps = {
   initial: ArchiveDoc | null;
   defaultCategory: CategoryKey;
   onClose: () => void;
-  onSave: (draft: ArchiveDocDraft) => void;
+  onSave: (draft: ArchiveDocDraft, file: File | null) => Promise<void>;
 };
 
 const EMPTY_INFO = "Belum ada file dipilih. Format PDF, maks 10 MB.";
@@ -32,19 +31,23 @@ export default function DocumentFormModal({
   const [judul, setJudul] = useState("");
   const [tahun, setTahun] = useState(String(new Date().getFullYear()));
   const [tentang, setTentang] = useState("");
-  const [file, setFile] = useState<ArchiveFile | null>(null);
+  const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [fileInfo, setFileInfo] = useState(EMPTY_INFO);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     if (fileInputRef.current) fileInputRef.current.value = "";
+    setSaving(false);
+    setError("");
+    setPickedFile(null);
     if (initial) {
       setCategory(initial.category);
       setJudul(initial.title);
       setTahun(initial.year);
       setTentang(initial.about);
-      setFile(initial.file ?? null);
       setFileInfo(
         `Berkas saat ini: ${initial.fileLabel}. Pilih file baru untuk mengganti.`,
       );
@@ -53,7 +56,6 @@ export default function DocumentFormModal({
       setJudul("");
       setTahun(String(new Date().getFullYear()));
       setTentang("");
-      setFile(null);
       setFileInfo(EMPTY_INFO);
     }
   }, [open, initial, defaultCategory]);
@@ -61,7 +63,7 @@ export default function DocumentFormModal({
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const picked = event.target.files?.[0];
     if (!picked) {
-      setFile(initial?.file ?? null);
+      setPickedFile(null);
       setFileInfo(
         initial
           ? `Berkas saat ini: ${initial.fileLabel}. Pilih file baru untuk mengganti.`
@@ -71,51 +73,58 @@ export default function DocumentFormModal({
     }
     if (!/\.pdf$/i.test(picked.name) && picked.type !== "application/pdf") {
       setFileInfo("File harus berformat PDF.");
+      setPickedFile(null);
       event.target.value = "";
       return;
     }
     if (picked.size > 10 * 1048576) {
       setFileInfo("Ukuran melebihi 10 MB.");
+      setPickedFile(null);
       event.target.value = "";
       return;
     }
 
-    setFileInfo(`Membaca ${picked.name} (${fmtSize(picked.size)})...`);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFile({
-        name: picked.name,
-        size: picked.size,
-        url: String(reader.result || ""),
-      });
-      setFileInfo(`Terpilih: ${picked.name} (${fmtSize(picked.size)})`);
-    };
-    reader.readAsDataURL(picked);
+    setPickedFile(picked);
+    setFileInfo(`Terpilih: ${picked.name} (${fmtSize(picked.size)})`);
   }
 
-  function save() {
+  async function save() {
+    if (saving) return;
     const nextTitle = judul.trim();
     const nextYear = tahun.trim();
     if (!nextTitle || !nextYear) {
       window.alert("Isi Nomor/Judul dan Tahun dulu.");
       return;
     }
-    const nextFile = file ?? initial?.file ?? null;
-    const fileLabel =
-      file && nextFile
-        ? `PDF · ${nextFile.name} · ${fmtSize(nextFile.size)}`
-        : initial?.fileLabel || "PDF";
 
-    onSave({
+    const fileLabel = pickedFile
+      ? `PDF · ${pickedFile.name} · ${fmtSize(pickedFile.size)}`
+      : initial?.fileLabel || "PDF";
+
+    const draft: ArchiveDocDraft = {
       id: initial?.id,
       category,
       title: nextTitle,
       year: nextYear,
       about: tentang.trim() || "-",
       fileLabel,
-      file: nextFile,
-    });
-    onClose();
+      file: initial?.file ?? null,
+    };
+
+    setSaving(true);
+    setError("");
+    try {
+      await onSave(draft, pickedFile);
+      onClose();
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Gagal menyimpan dokumen.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -192,8 +201,14 @@ export default function DocumentFormModal({
           onChange={(event) => setTentang(event.target.value)}
         />
       </label>
+      {error ? <p className="form-error">{error}</p> : null}
       <div className="modal-actions">
-        <button className="btn-secondary btn-sm" type="button" onClick={onClose}>
+        <button
+          className="btn-secondary btn-sm"
+          type="button"
+          onClick={onClose}
+          disabled={saving}
+        >
           Batal
         </button>
         <button
@@ -201,8 +216,9 @@ export default function DocumentFormModal({
           type="button"
           id="btnSimpanDok"
           onClick={save}
+          disabled={saving}
         >
-          Simpan
+          {saving ? "Menyimpan…" : "Simpan"}
         </button>
       </div>
     </Modal>

@@ -31,6 +31,47 @@ npm run preview      # build + jalankan lokal lewat workerd
 
 Konfigurasi ada di `wrangler.jsonc` (nama worker `siperlu`, aset dari `./out`).
 
+## Database & storage
+
+Situs memakai layanan Cloudflare:
+
+| Layanan | Nama | Kegunaan |
+| --- | --- | --- |
+| D1 | `siperlu-db` | metadata dokumen |
+| R2 | `siperlu-files` | berkas PDF (maks 10 MB) |
+| Workers Secrets | `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | login admin |
+
+Terapkan migrasi skema:
+
+```bash
+npm run db:migrate
+```
+
+Membuat hash password baru:
+
+```bash
+node scripts/hash-password.mjs "password-baru"
+npx wrangler secret put ADMIN_PASSWORD_HASH
+```
+
+Untuk pengembangan lokal, isi `.dev.vars` (tidak di-commit) dengan tiga variabel yang sama seperti contoh di `wrangler.jsonc`; `wrangler dev` membacanya otomatis.
+
+### API
+
+| Metode | Endpoint | Akses | Fungsi |
+| --- | --- | --- | --- |
+| GET | `/api/health` | publik | cek D1 + R2 |
+| POST | `/api/auth/login` | publik | login, set cookie sesi |
+| POST | `/api/auth/logout` | publik | hapus cookie sesi |
+| GET | `/api/auth/me` | publik | status sesi |
+| GET | `/api/documents` | publik | daftar dokumen |
+| POST | `/api/documents` | admin | tambah dokumen + PDF |
+| PUT | `/api/documents/:id` | admin | ubah dokumen + ganti PDF |
+| DELETE | `/api/documents/:id` | admin | hapus dokumen + PDF |
+| GET | `/api/files/:id` | publik | unduh/pratinjau PDF dari R2 |
+
+Sesi memakai cookie `HttpOnly` bertanda tangan HMAC (12 jam). Password disimpan sebagai hash PBKDF2-SHA256, bukan teks biasa.
+
 ## Mode demo
 
 - Login admin menerima kredensial apa pun.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Shell from "./Shell";
 import AppFooter from "./AppFooter";
 import HeroBanner from "./HeroBanner";
@@ -10,11 +10,15 @@ import QuickSearchCard from "./QuickSearchCard";
 import DonutCard from "./DonutCard";
 import CategorySection from "./CategorySection";
 import ArchiveCatalog from "./ArchiveCatalog";
+import { DEFAULT_FILTER, documentMatchesQuery } from "@/lib/data";
 import {
-  DEFAULT_FILTER,
-  INITIAL_DOCUMENTS,
-  documentMatchesQuery,
-} from "@/lib/data";
+  deleteDocument,
+  fetchDocuments,
+  fetchSession,
+  login,
+  logout,
+  saveDocument,
+} from "@/lib/api";
 import { downloadArchiveDoc } from "@/lib/pdf";
 import type {
   ArchiveDoc,
@@ -24,12 +28,51 @@ import type {
 } from "@/lib/types";
 
 export default function AdminSite() {
+  const [checking, setChecking] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [documents, setDocuments] = useState<ArchiveDoc[]>(INITIAL_DOCUMENTS);
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [documents, setDocuments] = useState<ArchiveDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState<ArchiveFilter>(DEFAULT_FILTER);
   const [heroQuery, setHeroQuery] = useState("");
   const [downloads, setDownloads] = useState(0);
-  const nextDocumentRef = useRef(15);
+
+  useEffect(() => {
+    fetchSession()
+      .then((session) => setLoggedIn(session.authenticated))
+      .catch(() => setLoggedIn(false))
+      .finally(() => setChecking(false));
+  }, []);
+
+  useEffect(() => {
+    if (!loggedIn) return;
+    let active = true;
+
+    setLoading(true);
+    fetchDocuments()
+      .then((items) => {
+        if (active) {
+          setDocuments(items);
+          setLoadError("");
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(
+            error instanceof Error ? error.message : "Gagal memuat arsip.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loggedIn]);
 
   function runSearch(query: string): number {
     const keyword = query.trim();
@@ -67,62 +110,85 @@ export default function AdminSite() {
     setHeroQuery("");
   }
 
-  function incrementDownloads() {
-    setDownloads((value) => value + 1);
-  }
-
   function handleDownload(document: ArchiveDoc) {
-    downloadArchiveDoc(document, incrementDownloads);
+    downloadArchiveDoc(document, () => setDownloads((value) => value + 1));
   }
 
-  function handleSaveDoc(draft: ArchiveDocDraft) {
-    setDocuments((previous) => {
-      if (draft.id) {
-        return previous.map((document) =>
-          document.id === draft.id
-            ? {
-                ...document,
-                category: draft.category,
-                title: draft.title,
-                year: draft.year,
-                about: draft.about,
-                fileLabel: draft.fileLabel,
-                file: draft.file ?? document.file ?? null,
-              }
-            : document,
-        );
-      }
-      const id = `d${nextDocumentRef.current}`;
-      nextDocumentRef.current += 1;
-      const { id: _ignored, ...rest } = draft;
-      return [...previous, { ...rest, id }];
-    });
+  async function handleLogin(username: string, password: string) {
+    setLoginBusy(true);
+    setLoginError("");
+    try {
+      await login(username, password);
+      setLoggedIn(true);
+      window.scrollTo({ top: 0 });
+    } catch (error) {
+      setLoginError(
+        error instanceof Error ? error.message : "Tidak bisa masuk.",
+      );
+    } finally {
+      setLoginBusy(false);
+    }
   }
 
-  function handleDeleteDoc(id: string) {
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      /* sesi lokal tetap dibersihkan */
+    }
+    setLoggedIn(false);
+    setDocuments([]);
+    setFilter(DEFAULT_FILTER);
+    setHeroQuery("");
+    window.scrollTo({ top: 0 });
+  }
+
+  async function handleSaveDoc(draft: ArchiveDocDraft, file: File | null) {
+    const saved = await saveDocument(draft, file);
     setDocuments((previous) =>
-      previous.filter((document) => document.id !== id),
+      draft.id
+        ? previous.map((document) =>
+            document.id === saved.id ? saved : document,
+          )
+        : [saved, ...previous],
     );
   }
 
-  function logout() {
-    setLoggedIn(false);
-    window.scrollTo({ top: 0 });
+  async function handleDeleteDoc(id: string) {
+    try {
+      await deleteDocument(id);
+      setDocuments((previous) =>
+        previous.filter((document) => document.id !== id),
+      );
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Gagal menghapus dokumen.",
+      );
+    }
+  }
+
+  if (checking) {
+    return (
+      <div className="login-screen">
+        <div className="login-card">
+          <p className="login-note">Memeriksa sesi…</p>
+        </div>
+      </div>
+    );
   }
 
   if (!loggedIn) {
     return (
       <LoginScreen
-        onLogin={() => {
-          setLoggedIn(true);
-          window.scrollTo({ top: 0 });
-        }}
+        onLogin={handleLogin}
+        busy={loginBusy}
+        error={loginError}
       />
     );
   }
 
   return (
-    <Shell variant="admin" onLogout={logout}>
+    <Shell variant="admin" onLogout={handleLogout}>
       <div className="board">
         <HeroBanner
           variant="admin"
@@ -130,6 +196,7 @@ export default function AdminSite() {
           onQueryChange={setHeroQuery}
           onSearch={() => runSearch(heroQuery)}
         />
+        {loadError ? <p className="load-note">{loadError}</p> : null}
         <div className="board-grid">
           <RecentTable documents={documents} onDownload={handleDownload} />
           <div className="board-side">
@@ -151,6 +218,7 @@ export default function AdminSite() {
           onReset={resetFilter}
           onSaveDoc={handleSaveDoc}
           onDeleteDoc={handleDeleteDoc}
+          loading={loading}
         />
         <AppFooter />
       </div>
