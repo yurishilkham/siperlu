@@ -13,12 +13,23 @@ Buka:
 - Publik: <http://localhost:3000>
 - Admin: <http://localhost:3000/admin>
 
-Build produksi:
+Build produksi (static export ke `out/`):
 
 ```bash
 npm run build
-npm run start
 ```
+
+## Deploy ke Cloudflare
+
+Situs diekspor sebagai berkas statis (`output: "export"`) dan disajikan oleh Cloudflare Workers Static Assets.
+
+```bash
+npx wrangler login   # sekali saja
+npm run deploy       # build + wrangler deploy
+npm run preview      # build + jalankan lokal lewat workerd
+```
+
+Konfigurasi ada di `wrangler.jsonc` (nama worker `siperlu`, aset dari `./out`).
 
 ## Mode demo
 

@@ -9,6 +9,10 @@ next-env.d.ts
 .gemini
 .opencode
 
+# Cloudflare
+.wrangler
+.dev.vars
+
 # Env / secrets
 .env
 .env*.local
