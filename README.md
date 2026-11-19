@@ -37,9 +37,9 @@ Situs memakai layanan Cloudflare:
 
 | Layanan | Nama | Kegunaan |
 | --- | --- | --- |
-| D1 | `siperlu-db` | metadata dokumen |
+| D1 | `siperlu-db` | metadata dokumen + akun admin |
 | R2 | `siperlu-files` | berkas PDF (maks 10 MB) |
-| Workers Secrets | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | login admin |
+| Workers Secrets | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET` | kredensial awal login admin |
 
 Terapkan migrasi skema:
 
@@ -54,6 +54,25 @@ node scripts/hash-password.mjs "password-baru"
 npx wrangler secret put ADMIN_PASSWORD_HASH
 ```
 
+Secret hanya dipakai untuk **seed login pertama**: saat admin masuk pertama kali, nilai `ADMIN_EMAIL` dan `ADMIN_PASSWORD_HASH` disalin ke tabel `admin_account` di D1. Setelah itu, sumber kebenaran adalah D1 — mengubah secret tidak lagi mengubah kredensial.
+
+## Profil admin
+
+Setelah login, buka tombol **Profil** di topbar (atau item Profil di sidebar). Dari sana admin bisa:
+
+- mengganti email login;
+- mengganti password (minimal 8 karakter);
+- wajib memasukkan password saat ini untuk menyimpan perubahan.
+
+Jika email diganti, sesi langsung diperbarui dan login berikutnya memakai email baru. Jika terkunci, reset manual lewat D1:
+
+```bash
+node scripts/hash-password.mjs "password-baru"
+# salin nilai ADMIN_PASSWORD_HASH, lalu:
+npx wrangler d1 execute siperlu-db --remote --command \
+  "UPDATE admin_account SET email='email-baru@domain.go.id', password_hash='pbkdf2$...' WHERE id=1"
+```
+
 Untuk pengembangan lokal, isi `.dev.vars` (tidak di-commit) dengan tiga variabel yang sama seperti contoh di `wrangler.jsonc`; `wrangler dev` membacanya otomatis.
 
 ### API
@@ -64,6 +83,8 @@ Untuk pengembangan lokal, isi `.dev.vars` (tidak di-commit) dengan tiga variabel
 | POST | `/api/auth/login` | publik | login, set cookie sesi |
 | POST | `/api/auth/logout` | publik | hapus cookie sesi |
 | GET | `/api/auth/me` | publik | status sesi |
+| GET | `/api/admin/profile` | admin | baca email admin |
+| PATCH | `/api/admin/profile` | admin | ubah email/password |
 | GET | `/api/documents` | publik | daftar dokumen |
 | POST | `/api/documents` | admin | tambah dokumen + PDF |
 | PUT | `/api/documents/:id` | admin | ubah dokumen + ganti PDF |

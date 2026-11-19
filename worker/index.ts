@@ -53,10 +53,18 @@ type DocumentRow = {
   updated_at: string;
 };
 
+type AdminRow = {
+  id: number;
+  email: string;
+  password_hash: string;
+  updated_at: string;
+};
+
 const CATEGORIES = new Set(["bawaslu", "kpu", "dkpp", "hukum-lainnya", "htn"]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const SESSION_COOKIE = "siperlu_session";
 const SESSION_TTL = 60 * 60 * 12;
+const PBKDF2_ITERATIONS = 100000;
 
 const encoder = new TextEncoder();
 
@@ -175,6 +183,50 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
     256,
   );
   return timingSafeEqual(new Uint8Array(bits), b64UrlToBytes(hashB64));
+}
+
+function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: PBKDF2_ITERATIONS,
+      hash: "SHA-256",
+    },
+    key,
+    256,
+  );
+  return `pbkdf2$${PBKDF2_ITERATIONS}$${toBase64(salt)}$${toBase64(new Uint8Array(bits))}`;
+}
+
+async function ensureAdminAccount(env: Env): Promise<AdminRow | null> {
+  const query = `SELECT id, email, password_hash, updated_at FROM admin_account WHERE id = 1`;
+  const existing = await env.DB.prepare(query).first<AdminRow>();
+  if (existing) return existing;
+
+  if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD_HASH) return null;
+
+  await env.DB.prepare(
+    `INSERT OR IGNORE INTO admin_account (id, email, password_hash) VALUES (1, ?, ?)`,
+  )
+    .bind(env.ADMIN_EMAIL.trim().toLowerCase(), env.ADMIN_PASSWORD_HASH)
+    .run();
+
+  return env.DB.prepare(query).first<AdminRow>();
 }
 
 function readCookie(request: Request, name: string): string | null {
@@ -439,7 +491,7 @@ async function serveFile(request: Request, env: Env, id: string) {
 }
 
 async function handleLogin(request: Request, env: Env) {
-  if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD_HASH || !env.SESSION_SECRET) {
+  if (!env.SESSION_SECRET) {
     return fail(500, "Kredensial admin belum dikonfigurasi.");
   }
 
@@ -452,17 +504,68 @@ async function handleLogin(request: Request, env: Env) {
     return fail(401, "Email atau password salah.");
   }
 
+  const account = await ensureAdminAccount(env);
+  if (!account) return fail(500, "Kredensial admin belum dikonfigurasi.");
+
   const validUser = timingSafeEqual(
     encoder.encode(email),
-    encoder.encode(env.ADMIN_EMAIL.trim().toLowerCase()),
+    encoder.encode(account.email.trim().toLowerCase()),
   );
-  const validPassword = await verifyPassword(password, env.ADMIN_PASSWORD_HASH);
+  const validPassword = await verifyPassword(password, account.password_hash);
 
   if (!validUser || !validPassword) return fail(401, "Email atau password salah.");
 
-  const token = await createSession(env.ADMIN_EMAIL, env);
+  const token = await createSession(account.email, env);
   return json(
-    { ok: true, email: env.ADMIN_EMAIL },
+    { ok: true, email: account.email },
+    200,
+    { "set-cookie": sessionCookie(token, SESSION_TTL, new URL(request.url).protocol === "https:") },
+  );
+}
+
+async function handleProfileUpdate(request: Request, env: Env) {
+  const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+  const currentPassword =
+    typeof body.currentPassword === "string" ? body.currentPassword : "";
+  const requestedEmail = cleanText(body.email, 200).toLowerCase();
+  const newPassword = typeof body.newPassword === "string" ? body.newPassword : "";
+
+  const account = await ensureAdminAccount(env);
+  if (!account) return fail(500, "Akun admin belum tersedia.");
+
+  if (!currentPassword) return fail(400, "Masukkan password saat ini.");
+  if (!(await verifyPassword(currentPassword, account.password_hash))) {
+    return fail(401, "Password saat ini salah.");
+  }
+
+  if (requestedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail)) {
+    return fail(400, "Format email tidak valid.");
+  }
+  if (newPassword && newPassword.length < 8) {
+    return fail(400, "Password baru minimal 8 karakter.");
+  }
+  if (newPassword.length > 200) return fail(400, "Password terlalu panjang.");
+
+  const nextEmail = requestedEmail || account.email;
+  if (!newPassword && nextEmail === account.email) {
+    return fail(400, "Tidak ada perubahan untuk disimpan.");
+  }
+
+  const nextHash = newPassword
+    ? await hashPassword(newPassword)
+    : account.password_hash;
+
+  await env.DB.prepare(
+    `UPDATE admin_account
+        SET email = ?, password_hash = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE id = 1`,
+  )
+    .bind(nextEmail, nextHash)
+    .run();
+
+  const token = await createSession(nextEmail, env);
+  return json(
+    { ok: true, email: nextEmail },
     200,
     { "set-cookie": sessionCookie(token, SESSION_TTL, new URL(request.url).protocol === "https:") },
   );
@@ -495,8 +598,25 @@ export default {
       }
 
       if (path === "/api/auth/me") {
-        const email = await currentUser(request, env);
-        return json(email ? { authenticated: true, email } : { authenticated: false });
+        const sessionEmail = await currentUser(request, env);
+        if (!sessionEmail) return json({ authenticated: false });
+        const account = await ensureAdminAccount(env);
+        return json({
+          authenticated: true,
+          email: account?.email ?? sessionEmail,
+        });
+      }
+
+      if (path === "/api/admin/profile") {
+        if (!(await currentUser(request, env))) return fail(401, "Butuh login admin.");
+        if (method === "GET") {
+          const account = await ensureAdminAccount(env);
+          return account
+            ? json({ email: account.email, updatedAt: account.updated_at })
+            : fail(500, "Akun admin belum tersedia.");
+        }
+        if (method === "PATCH") return handleProfileUpdate(request, env);
+        return fail(405, "Metode tidak didukung.");
       }
 
       if (path === "/api/documents") {

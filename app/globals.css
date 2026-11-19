@@ -1748,3 +1748,9 @@ html{scroll-behavior:smooth}
 .load-note{margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;line-height:1.5;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
 .form-error{margin:10px 0 0;color:#b91c1c;font-size:12.5px;line-height:1.5}
 .btn-primary:disabled,.btn-secondary:disabled{opacity:.65;cursor:not-allowed}
+
+/* Admin profile */
+.tb-right{margin-left:auto;align-items:center;display:flex}
+.tb-profile{font:inherit;font-size:12px;font-weight:700;letter-spacing:-.01em;color:var(--navy-900);gap:7px;padding:4px 12px 4px 4px}
+.tb-profile svg{width:16px;height:16px;color:#64748b;background:#f1f5fb;border-radius:50%;padding:7px;box-sizing:content-box}
+.form-success{margin:10px 0 0;color:#15803d;font-size:12.5px;line-height:1.5}

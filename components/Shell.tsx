@@ -7,10 +7,16 @@ import TopBar from "./TopBar";
 type ShellProps = {
   variant: "public" | "admin";
   onLogout?: () => void;
+  onProfile?: () => void;
   children: React.ReactNode;
 };
 
-export default function Shell({ variant, onLogout, children }: ShellProps) {
+export default function Shell({
+  variant,
+  onLogout,
+  onProfile,
+  children,
+}: ShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -25,11 +31,16 @@ export default function Shell({ variant, onLogout, children }: ShellProps) {
       <SideNav
         variant={variant}
         onLogout={onLogout}
+        onProfile={onProfile}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
       />
       <div className="app-main">
-        <TopBar variant={variant} onMenu={() => setMenuOpen(true)} />
+        <TopBar
+          variant={variant}
+          onMenu={() => setMenuOpen(true)}
+          onProfile={onProfile}
+        />
         <div className="app-content">{children}</div>
       </div>
     </div>

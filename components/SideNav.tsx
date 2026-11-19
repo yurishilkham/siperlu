@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type SideNavProps = {
   variant: "public" | "admin";
   onLogout?: () => void;
+  onProfile?: () => void;
   open: boolean;
   onClose: () => void;
 };
@@ -68,6 +69,7 @@ function ItemIcon({ name }: { name: Item["icon"] }) {
 export default function SideNav({
   variant,
   onLogout,
+  onProfile,
   open,
   onClose,
 }: SideNavProps) {
@@ -181,6 +183,13 @@ export default function SideNav({
       {admin ? (
         <>
           <div className="sb-sep" aria-hidden="true" />
+          <button className="sb-exit" type="button" onClick={onProfile}>
+            <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
+              <circle cx="12" cy="8.5" r="3.5" />
+              <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
+            </svg>
+            <span>Profil</span>
+          </button>
           <button className="sb-exit" type="button" onClick={onLogout}>
             <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
               <path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" />

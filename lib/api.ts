@@ -71,3 +71,21 @@ export function deleteDocument(id: string): Promise<{ ok: boolean }> {
     method: "DELETE",
   });
 }
+
+export type Profile = { email: string; updatedAt?: string };
+
+export function fetchProfile(): Promise<Profile> {
+  return request<Profile>("/api/admin/profile");
+}
+
+export function updateProfile(input: {
+  currentPassword: string;
+  email: string;
+  newPassword: string;
+}): Promise<{ ok: boolean; email: string }> {
+  return request<{ ok: boolean; email: string }>("/api/admin/profile", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}

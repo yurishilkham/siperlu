@@ -10,6 +10,7 @@ import QuickSearchCard from "./QuickSearchCard";
 import DonutCard from "./DonutCard";
 import CategorySection from "./CategorySection";
 import ArchiveCatalog from "./ArchiveCatalog";
+import ProfileModal from "./ProfileModal";
 import { DEFAULT_FILTER, documentMatchesQuery } from "@/lib/data";
 import {
   deleteDocument,
@@ -30,6 +31,8 @@ import type {
 export default function AdminSite() {
   const [checking, setChecking] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
   const [loginBusy, setLoginBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [documents, setDocuments] = useState<ArchiveDoc[]>([]);
@@ -41,7 +44,10 @@ export default function AdminSite() {
 
   useEffect(() => {
     fetchSession()
-      .then((session) => setLoggedIn(session.authenticated))
+      .then((session) => {
+        setLoggedIn(session.authenticated);
+        if (session.email) setAdminEmail(session.email);
+      })
       .catch(() => setLoggedIn(false))
       .finally(() => setChecking(false));
   }, []);
@@ -118,7 +124,8 @@ export default function AdminSite() {
     setLoginBusy(true);
     setLoginError("");
     try {
-      await login(email, password);
+      const session = await login(email, password);
+      if (session.email) setAdminEmail(session.email);
       setLoggedIn(true);
       window.scrollTo({ top: 0 });
     } catch (error) {
@@ -188,7 +195,7 @@ export default function AdminSite() {
   }
 
   return (
-    <Shell variant="admin" onLogout={handleLogout}>
+    <Shell variant="admin" onLogout={handleLogout} onProfile={() => setProfileOpen(true)}>
       <div className="board">
         <HeroBanner
           variant="admin"
@@ -222,6 +229,12 @@ export default function AdminSite() {
         />
         <AppFooter />
       </div>
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        email={adminEmail}
+        onUpdated={setAdminEmail}
+      />
     </Shell>
   );
 }

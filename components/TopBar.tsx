@@ -3,9 +3,14 @@
 type TopBarProps = {
   variant: "public" | "admin";
   onMenu: () => void;
+  onProfile?: () => void;
 };
 
-export default function TopBar({ variant, onMenu }: TopBarProps) {
+export default function TopBar({
+  variant,
+  onMenu,
+  onProfile,
+}: TopBarProps) {
   const admin = variant === "admin";
 
   return (
@@ -32,6 +37,30 @@ export default function TopBar({ variant, onMenu }: TopBarProps) {
           ) : null}
         </b>
       </div>
+      {admin ? (
+        <div className="tb-right">
+          <button
+            className="tb-avatar tb-profile"
+            type="button"
+            onClick={onProfile}
+            aria-label="Buka profil admin"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8.5" r="3.5" />
+              <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
+            </svg>
+            <span>Profil</span>
+          </button>
+        </div>
+      ) : null}
     </header>
   );
 }
