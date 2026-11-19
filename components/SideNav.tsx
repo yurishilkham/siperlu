@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 type SideNavProps = {
   variant: "public" | "admin";
   onLogout?: () => void;
-  onProfile?: () => void;
   open: boolean;
   onClose: () => void;
 };
@@ -13,7 +12,7 @@ type SideNavProps = {
 type Item = {
   id: string;
   label: string;
-  icon: "home" | "doc" | "grid" | "folder" | "user";
+  icon: "home" | "doc" | "grid" | "folder";
 };
 
 const ITEMS: Item[] = [
@@ -58,14 +57,6 @@ function ItemIcon({ name }: { name: Item["icon"] }) {
       </svg>
     );
   }
-  if (name === "user") {
-    return (
-      <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
-        <circle cx="12" cy="8.5" r="3.5" />
-        <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
-      </svg>
-    );
-  }
   return (
     <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
       <path d="M3.5 7A2.5 2.5 0 0 1 6 4.5h4l2 2.5h6A2.5 2.5 0 0 1 20.5 9.5V17a2.5 2.5 0 0 1-2.5 2.5H6A2.5 2.5 0 0 1 3.5 17z" />
@@ -77,7 +68,6 @@ function ItemIcon({ name }: { name: Item["icon"] }) {
 export default function SideNav({
   variant,
   onLogout,
-  onProfile,
   open,
   onClose,
 }: SideNavProps) {
@@ -187,19 +177,6 @@ export default function SideNav({
             <span>{item.label}</span>
           </a>
         ))}
-        {admin ? (
-          <button
-            className="sb-item sb-profile"
-            type="button"
-            onClick={() => {
-              onClose();
-              onProfile?.();
-            }}
-          >
-            <ItemIcon name="user" />
-            <span>Profil</span>
-          </button>
-        ) : null}
       </nav>
       {admin ? (
         <>

@@ -955,12 +955,6 @@ html{scroll-behavior:smooth}
 .sb-item.active{color:#fff;
  background:linear-gradient(#2f6ad9,#1a5ae0);
  box-shadow:0 10px 22px #1a5ae06b}
-.sb-profile{cursor:pointer;
- background:none;
- border:0;
- width:100%;
- font-family:inherit;
- text-align:left}
 .sb-sep{border-top:1px solid #ffffff21;
  margin:14px 6px}
 .sb-exit{color:#dbe7f5;
@@ -1756,4 +1750,7 @@ html{scroll-behavior:smooth}
 .btn-primary:disabled,.btn-secondary:disabled{opacity:.65;cursor:not-allowed}
 
 /* Admin profile */
+.tb-right{margin-left:auto;align-items:center;display:flex}
+.tb-profile{font:inherit;font-size:12px;font-weight:700;letter-spacing:-.01em;color:var(--navy-900);gap:7px;padding:4px 12px 4px 4px}
+.tb-profile svg{width:16px;height:16px;color:#64748b;background:#f1f5fb;border-radius:50%;padding:7px;box-sizing:content-box}
 .form-success{margin:10px 0 0;color:#15803d;font-size:12.5px;line-height:1.5}

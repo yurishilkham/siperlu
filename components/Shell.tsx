@@ -31,7 +31,6 @@ export default function Shell({
       <SideNav
         variant={variant}
         onLogout={onLogout}
-        onProfile={onProfile}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
       />
@@ -39,6 +38,7 @@ export default function Shell({
         <TopBar
           variant={variant}
           onMenu={() => setMenuOpen(true)}
+          onProfile={onProfile}
         />
         <div className="app-content">{children}</div>
       </div>
