@@ -13,7 +13,7 @@ type SideNavProps = {
 type Item = {
   id: string;
   label: string;
-  icon: "home" | "doc" | "grid" | "folder";
+  icon: "home" | "doc" | "grid" | "folder" | "user";
 };
 
 const ITEMS: Item[] = [
@@ -55,6 +55,14 @@ function ItemIcon({ name }: { name: Item["icon"] }) {
         <rect x="13" y="4" width="7" height="7" rx="2" />
         <rect x="4" y="13" width="7" height="7" rx="2" />
         <rect x="13" y="13" width="7" height="7" rx="2" />
+      </svg>
+    );
+  }
+  if (name === "user") {
+    return (
+      <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
+        <circle cx="12" cy="8.5" r="3.5" />
+        <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
       </svg>
     );
   }
@@ -179,17 +187,23 @@ export default function SideNav({
             <span>{item.label}</span>
           </a>
         ))}
+        {admin ? (
+          <button
+            className="sb-item sb-profile"
+            type="button"
+            onClick={() => {
+              onClose();
+              onProfile?.();
+            }}
+          >
+            <ItemIcon name="user" />
+            <span>Profil</span>
+          </button>
+        ) : null}
       </nav>
       {admin ? (
         <>
           <div className="sb-sep" aria-hidden="true" />
-          <button className="sb-exit" type="button" onClick={onProfile}>
-            <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
-              <circle cx="12" cy="8.5" r="3.5" />
-              <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
-            </svg>
-            <span>Profil</span>
-          </button>
           <button className="sb-exit" type="button" onClick={onLogout}>
             <svg viewBox="0 0 24 24" {...ICON_STROKE} aria-hidden="true">
               <path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14" />

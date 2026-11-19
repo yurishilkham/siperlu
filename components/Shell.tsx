@@ -39,7 +39,6 @@ export default function Shell({
         <TopBar
           variant={variant}
           onMenu={() => setMenuOpen(true)}
-          onProfile={onProfile}
         />
         <div className="app-content">{children}</div>
       </div>

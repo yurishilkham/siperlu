@@ -58,7 +58,7 @@ Secret hanya dipakai untuk **seed login pertama**: saat admin masuk pertama kali
 
 ## Profil admin
 
-Setelah login, buka tombol **Profil** di topbar (atau item Profil di sidebar). Dari sana admin bisa:
+Setelah login, buka item **Profil** di sidebar (tepat di bawah menu Arsip). Dari sana admin bisa:
 
 - mengganti email login;
 - mengganti password (minimal 8 karakter);
